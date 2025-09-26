@@ -1,16 +1,16 @@
-# week07/backend/product_service/Dockerfile
+# Use lightweight Nginx image
+FROM nginx:alpine
 
-FROM python:3.10-slim-buster
+# Remove default Nginx static assets
+RUN rm -rf /usr/share/nginx/html/*
 
-WORKDIR /code
+# Copy your static frontend files
+COPY index.html /usr/share/nginx/html/
+COPY main.js /usr/share/nginx/html/
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-COPY requirements.txt .
+# Expose Nginx default port
+EXPOSE 80
 
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
-
-COPY app /code/app
-
-EXPOSE 8000
-
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]
