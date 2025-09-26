@@ -1,19 +1,18 @@
-name: CI Pipeline - Push Images to ACR
+# .github/workflows/ci-pipeline.yml
+
+name: CI Pipeline - Build & Push to ACR
 
 on:
   push:
     branches:
-      - testing
-
-env:
-  IMAGE_TAG: ${{ github.sha }}
+      - testing   # adjust branch if needed
 
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout code
+      # Checkout repo
       - name: Checkout repository
         uses: actions/checkout@v3
 
@@ -23,7 +22,7 @@ jobs:
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # Login to ACR
+      # Docker login
       - name: Docker login to ACR
         uses: azure/docker-login@v1
         with:
@@ -31,30 +30,26 @@ jobs:
           username: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }}
           password: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }}
 
-      # Save unmasked ACR name to env
-      - name: Set ACR Login Server
-        run: echo "ACR_SERVER=${{ secrets.ACR_LOGIN_SERVER }}" >> $GITHUB_ENV
-
       # Build & Push Frontend
       - name: Build and Push Frontend
         run: |
-          docker build -t $ACR_SERVER/frontend:$IMAGE_TAG ./frontend
-          docker push $ACR_SERVER/frontend:$IMAGE_TAG
+          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/frontend:latest ./frontend
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/frontend:latest
 
       # Build & Push Product Service
       - name: Build and Push Product Service
         run: |
-          docker build -t $ACR_SERVER/product:$IMAGE_TAG ./backend/product
-          docker push $ACR_SERVER/product:$IMAGE_TAG
+          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/product:latest ./backend/product_service
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/product:latest
 
       # Build & Push Order Service
       - name: Build and Push Order Service
         run: |
-          docker build -t $ACR_SERVER/order:$IMAGE_TAG ./backend/order
-          docker push $ACR_SERVER/order:$IMAGE_TAG
+          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/order:latest ./backend/order_service
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/order:latest
 
       # Build & Push Customer Service
       - name: Build and Push Customer Service
         run: |
-          docker build -t $ACR_SERVER/customer:$IMAGE_TAG ./backend/customer
-          docker push $ACR_SERVER/customer:$IMAGE_TAG
+          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/customer:latest ./backend/customer_service
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/customer:latest
