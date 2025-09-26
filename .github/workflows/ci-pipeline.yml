@@ -10,17 +10,14 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Step 1: Checkout code
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      # Step 2: Azure login (via Service Principal JSON)
       - name: Azure Login
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
 
-      # Step 3: Login to ACR
       - name: Docker login to ACR
         uses: azure/docker-login@v1
         with:
@@ -28,8 +25,22 @@ jobs:
           username: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }}
           password: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }}
 
-      # Step 4: Build & Push (Frontend only as lightweight demo)
       - name: Build and Push frontend
         run: |
           docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }} ./frontend
           docker push ${{ secrets.ACR_LOGIN_SERVER }}/frontend:${{ github.sha }}
+
+      - name: Build and Push product
+        run: |
+          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/product:${{ github.sha }} ./backend/product
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/product:${{ github.sha }}
+
+      - name: Build and Push order
+        run: |
+          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/order:${{ github.sha }} ./backend/order
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/order:${{ github.sha }}
+
+      - name: Build and Push customer
+        run: |
+          docker build -t ${{ secrets.ACR_LOGIN_SERVER }}/customer:${{ github.sha }} ./backend/customer
+          docker push ${{ secrets.ACR_LOGIN_SERVER }}/customer:${{ github.sha }}
