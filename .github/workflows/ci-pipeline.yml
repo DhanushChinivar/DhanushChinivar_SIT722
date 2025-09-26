@@ -1,4 +1,4 @@
-name: CI Pipeline - Push to ACR
+name: CI Pipeline - Push Images to ACR
 
 on:
   push:
@@ -9,7 +9,7 @@ env:
   IMAGE_TAG: ${{ github.sha }}
 
 jobs:
-  build-test-push:
+  build-and-push:
     runs-on: ubuntu-latest
 
     steps:
@@ -31,7 +31,7 @@ jobs:
           username: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }}
           password: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }}
 
-      # Save unmasked ACR name into env var
+      # Save unmasked ACR name to env
       - name: Set ACR Login Server
         run: echo "ACR_SERVER=${{ secrets.ACR_LOGIN_SERVER }}" >> $GITHUB_ENV
 
