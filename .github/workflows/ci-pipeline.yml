@@ -6,7 +6,6 @@ on:
       - testing
 
 env:
-  ACR_LOGIN_SERVER: ${{ secrets.ACR_LOGIN_SERVER }}
   IMAGE_TAG: ${{ github.sha }}
 
 jobs:
@@ -28,30 +27,34 @@ jobs:
       - name: Docker login to ACR
         uses: azure/docker-login@v1
         with:
-          login-server: ${{ env.ACR_LOGIN_SERVER }}
+          login-server: ${{ secrets.ACR_LOGIN_SERVER }}
           username: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientId }}
           password: ${{ fromJson(secrets.AZURE_CREDENTIALS).clientSecret }}
+
+      # Save unmasked ACR name into env var
+      - name: Set ACR Login Server
+        run: echo "ACR_SERVER=${{ secrets.ACR_LOGIN_SERVER }}" >> $GITHUB_ENV
 
       # Build & Push Frontend
       - name: Build and Push Frontend
         run: |
-          docker build -t ${{ env.ACR_LOGIN_SERVER }}/frontend:${{ env.IMAGE_TAG }} ./frontend
-          docker push ${{ env.ACR_LOGIN_SERVER }}/frontend:${{ env.IMAGE_TAG }}
+          docker build -t $ACR_SERVER/frontend:$IMAGE_TAG ./frontend
+          docker push $ACR_SERVER/frontend:$IMAGE_TAG
 
       # Build & Push Product Service
       - name: Build and Push Product Service
         run: |
-          docker build -t ${{ env.ACR_LOGIN_SERVER }}/product:${{ env.IMAGE_TAG }} ./backend/product
-          docker push ${{ env.ACR_LOGIN_SERVER }}/product:${{ env.IMAGE_TAG }}
+          docker build -t $ACR_SERVER/product:$IMAGE_TAG ./backend/product
+          docker push $ACR_SERVER/product:$IMAGE_TAG
 
       # Build & Push Order Service
       - name: Build and Push Order Service
         run: |
-          docker build -t ${{ env.ACR_LOGIN_SERVER }}/order:${{ env.IMAGE_TAG }} ./backend/order
-          docker push ${{ env.ACR_LOGIN_SERVER }}/order:${{ env.IMAGE_TAG }}
+          docker build -t $ACR_SERVER/order:$IMAGE_TAG ./backend/order
+          docker push $ACR_SERVER/order:$IMAGE_TAG
 
       # Build & Push Customer Service
       - name: Build and Push Customer Service
         run: |
-          docker build -t ${{ env.ACR_LOGIN_SERVER }}/customer:${{ env.IMAGE_TAG }} ./backend/customer
-          docker push ${{ env.ACR_LOGIN_SERVER }}/customer:${{ env.IMAGE_TAG }}
+          docker build -t $ACR_SERVER/customer:$IMAGE_TAG ./backend/customer
+          docker push $ACR_SERVER/customer:$IMAGE_TAG
